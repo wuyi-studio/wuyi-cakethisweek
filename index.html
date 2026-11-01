@@ -4,13 +4,17 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 <title>Wuyi Cake 當週公版蛋糕訂購</title>
+<!-- 防止瀏覽器快取舊版本 -->
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+<meta http-equiv="Pragma" content="no-cache" />
+<meta http-equiv="Expires" content="0" />
 <!-- Tailwind CSS -->
 <script src="https://cdn.tailwindcss.com"></script>
 <!-- Flatpickr 日曆 -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-<!-- 載入每週設定檔 -->
-<script src="./config.js"></script>
+<!-- 載入每週設定檔（加上版本號破除快取） -->
+<script src="./config.js?v=20261101_v3"></script>
 <style>
 /* 設定正體中文（繁體中文）與英文字體優先順序 */
 body {
@@ -382,7 +386,7 @@ input, select, textarea {
 </div>
 
 <script>
-// ==================== 1. 安全預設設定 ====================
+// ==================== 1. 安全預設設定（內建完整最新版） ====================
 const DEFAULT_CONFIG = {
   lineOaId: "@230fpemy",
   gasApi: "https://script.google.com/macros/s/AKfycbzVxDkFO8UDZHUZYhiwGSFsTU4v6Ilbp0mgLXHEiXtDYYv_9p3epdF_y1IoWwSalqVx/exec",
@@ -395,15 +399,135 @@ const DEFAULT_CONFIG = {
     weeklyClosedDay: 1,
     closedDates: []
   },
-  cakePhotos: [],
+  cakePhotos: [
+    {
+      id: "cake1",
+      file: "./line_oa_chat_261101_102231.jpg",
+      title: "款式 1｜復古裱花蛋糕",
+      spec: "4吋整模（雙層夾餡）",
+      price: 1060,
+      priceText: "$1,060",
+      flavorOptions: [
+        "口味1：原味戚風+焙茶奶凍+焦糖核桃+原味奶油",
+        "口味2：可可戚風+可可奶凍+Oreo可可脆+原味奶油"
+      ],
+      customConfig: {
+        hasRibbon: true,
+        ribbonLabel: "絲帶顏色（單選）",
+        ribbonColors: ["藍色（原樣）", "黑色", "粉色", "紫色", "紅色"],
+        hasTextChoice: true,
+        textLabel: "蛋糕題字（二選一，僅提供這兩種題字）",
+        textChoices: ["Happy Birthday", "Happy Anniversary"]
+      }
+    },
+    {
+      id: "cake2",
+      file: "./R0039193.JPG",
+      title: "款式 2｜夢幻白紗皇冠蛋糕",
+      spec: "4吋整模（雙層夾餡）",
+      price: 1200,
+      priceText: "$1,200",
+      badge: "含皇冠/絲帶蠟燭/插牌",
+      flavorOptions: [
+        "口味1：原味戚風+焙茶奶凍+焦糖核桃+原味奶油",
+        "口味2：可可戚風+可可奶凍+Oreo可可脆+原味奶油"
+      ],
+      customConfig: {
+        isFixed: true,
+        fixedNote: "款式如圖製作，含圖中的皇冠、絲帶蠟燭、生日插牌，沒有客製選項喔！"
+      }
+    },
+    {
+      id: "cake3",
+      file: "./R0039704.jpg",
+      title: "款式 3｜可可星星半裸蛋糕（可可粉款）",
+      spec: "4吋整模（雙層夾餡）",
+      price: 980,
+      priceText: "$980",
+      flavorOptions: [
+        "口味1：原味戚風+焙茶奶凍+焦糖核桃+原味奶油",
+        "口味2：可可戚風+可可奶凍+Oreo可可脆+原味奶油"
+      ],
+      customConfig: {
+        hasCardChoice: true,
+        cardLabel: "蛋糕上小卡片（二選一）",
+        cardChoices: ["Happy Birthday", "Happy Anniversary"]
+      }
+    },
+    {
+      id: "cake4",
+      file: "./R0039525.JPG",
+      title: "款式 4｜Oreo 藍莓小精靈",
+      spec: "漢堡盒（4吋單層夾餡）",
+      price: 760,
+      priceText: "$760",
+      flavorOptions: [
+        "口味1：原味戚風+焦糖核桃+原味奶油",
+        "口味2：可可戚風+Oreo可可脆+原味奶油"
+      ],
+      customConfig: {
+        hasTextColor: true,
+        textColorLabel: "更換題字顏色（單選）",
+        textColors: ["原樣顏色", "白色", "黑色", "藍色", "粉色", "紫色", "紅色"],
+        hasCardChoice: true,
+        cardLabel: "蛋糕上小卡片（二選一）",
+        cardChoices: ["Happy Birthday", "Happy Anniversary"]
+      }
+    },
+    {
+      id: "cake5",
+      file: "./R0039526.JPG",
+      title: "款式 5｜復古酒紅蝴蝶結漢堡盒",
+      spec: "漢堡盒（4吋單層夾餡）",
+      price: 760,
+      priceText: "$760",
+      flavorOptions: [
+        "口味1：原味戚風+焦糖核桃+原味奶油",
+        "口味2：可可戚風+Oreo可可脆+原味奶油"
+      ],
+      customConfig: {
+        hasBowColor: true,
+        bowLabel: "蝴蝶結顏色（單選）",
+        bowColors: ["紅色（原樣）", "黑色", "粉色", "紫色", "藍色"],
+        hasCardChoice: true,
+        cardLabel: "蛋糕上小卡片（二選一）",
+        cardChoices: ["Happy Birthday", "Happy Anniversary"]
+      }
+    },
+    {
+      id: "cake6",
+      file: "./line_oa_chat_261101_105508.jpg",
+      title: "款式 6｜繡球花珍珠漢堡盒",
+      spec: "漢堡盒（4吋單層夾餡）",
+      price: 760,
+      priceText: "$760",
+      flavorOptions: [
+        "口味1：原味戚風+焦糖核桃+原味奶油",
+        "口味2：可可戚風+Oreo可可脆+原味奶油"
+      ],
+      customConfig: {
+        hasColorSelect: true,
+        colorSelectLabel: "款式顏色選擇（單選）",
+        colorSelectOptions: ["藍色", "粉色", "黃色", "紫色"],
+        hasTextChoice: true,
+        textLabel: "蛋糕題字（二選一，僅提供這兩種題字）",
+        textChoices: ["Happy Birthday", "Happy Anniversary"]
+      }
+    }
+  ],
   addons: ["2人餐具 $15", "5人餐具 $30", "10人餐具 $50", "生日插牌 / 造型蠟燭", "保冰袋/劑 $100"]
 };
 
-// 合併設定檔
-const ACTIVE_CONFIG = (typeof CONFIG !== 'undefined') ? CONFIG : DEFAULT_CONFIG;
-if (!ACTIVE_CONFIG.lineOaId) ACTIVE_CONFIG.lineOaId = DEFAULT_CONFIG.lineOaId;
-if (!ACTIVE_CONFIG.booking) ACTIVE_CONFIG.booking = DEFAULT_CONFIG.booking;
-if (!ACTIVE_CONFIG.addons) ACTIVE_CONFIG.addons = DEFAULT_CONFIG.addons;
+// 智慧設定合併：防禦瀏覽器快取舊版 config.js
+let ACTIVE_CONFIG = DEFAULT_CONFIG;
+if (typeof CONFIG !== 'undefined' && CONFIG && Array.isArray(CONFIG.cakePhotos) && CONFIG.cakePhotos.length === 6 && CONFIG.cakePhotos[0].title.includes("復古裱花蛋糕")) {
+  ACTIVE_CONFIG = CONFIG;
+} else if (typeof CONFIG !== 'undefined' && CONFIG) {
+  // 若載入的是舊版快取 config.js，強制使用 DEFAULT_CONFIG 的 cakePhotos，保留其他相容欄位
+  ACTIVE_CONFIG = Object.assign({}, DEFAULT_CONFIG, CONFIG);
+  ACTIVE_CONFIG.cakePhotos = DEFAULT_CONFIG.cakePhotos;
+  ACTIVE_CONFIG.lineOaId = "@230fpemy";
+}
 
 // ==================== 2. 日期與 Google 試算表 (GAS) 核心常數 ====================
 const CALENDAR_CATEGORY = "cakethisweek_calander";
