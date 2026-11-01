@@ -9,12 +9,13 @@
 <!-- Flatpickr 日曆 -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-<!-- 載入每週設定檔（若無此檔亦有安全預設值） -->
+<!-- 載入每週設定檔 -->
 <script src="./config.js"></script>
 <style>
 /* 設定正體中文（繁體中文）與英文字體優先順序 */
 body {
   font-family: -apple-system, BlinkMacSystemFont, "PingFang TC", "Heiti TC", "Microsoft JhengHei", "Noto Sans TC", sans-serif;
+  -webkit-tap-highlight-color: transparent;
 }
 /* 防止 iPhone 點擊輸入框時自動放大 (Zoom In) */
 input, select, textarea {
@@ -30,7 +31,7 @@ input, select, textarea {
   to { opacity: 1; transform: translateY(0); }
 }
 /* 點擊回饋效果 */
-.touch-press:active { transform: scale(0.97); }
+.touch-press:active { transform: scale(0.98); }
 </style>
 </head>
 <body class="bg-[#E8E4DC] text-stone-800 p-2 sm:p-4 min-h-screen flex justify-center items-start font-sans">
@@ -55,7 +56,7 @@ input, select, textarea {
       <div class="mb-3 pb-3 border-b border-stone-200">
         <h1 class="text-lg sm:text-xl font-bold text-stone-800 flex items-center justify-between">
           <span>Wuyi Cake 當週公版蛋糕訂購</span>
-          <span id="adminCakeBtn" class="text-base cursor-pointer select-none active:scale-90 transition p-1">🎂</span>
+          <span id="adminCakeBtn" class="text-base cursor-pointer select-none active:scale-90 transition p-1" title="店長後台">🎂</span>
         </h1>
         <p class="text-xs text-stone-600 mt-1">
           訂購前請先加入官方LINE：<a id="lineOaLink" href="#" target="_blank" rel="noopener noreferrer" class="text-[#62502D] font-bold underline"></a>（送出後由專人報價）
@@ -63,11 +64,11 @@ input, select, textarea {
 
         <!-- 3 步驟進度條 -->
         <div id="stepIndicator" class="mt-3 pt-2.5 border-t border-stone-100 grid grid-cols-3 gap-1.5 text-center">
-          <div id="ind-1" class="py-1.5 px-1 rounded-lg bg-[#62502D] text-white text-[11px] font-bold transition">
+          <div id="ind-1" class="py-1.5 px-1 rounded-lg bg-[#62502D] text-white text-[11px] font-bold transition shadow-sm">
             1. 勾選公版款式
           </div>
           <div id="ind-2" class="py-1.5 px-1 rounded-lg bg-stone-100 text-stone-500 text-[11px] font-semibold transition">
-            2. 客製化選項
+            2. 口味與客製選項
           </div>
           <div id="ind-3" class="py-1.5 px-1 rounded-lg bg-stone-100 text-stone-500 text-[11px] font-semibold transition">
             3. 加購與領取確認
@@ -77,9 +78,9 @@ input, select, textarea {
 
       <!-- 送出成功後的覆蓋畫面（預設隱藏） -->
       <div id="successOverlay" class="hidden text-center py-6 space-y-3">
-        <div class="text-3xl font-bold text-[#62502D]">✓</div>
+        <div class="w-14 h-14 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center mx-auto text-2xl font-bold">✓</div>
         <h2 class="text-lg font-bold text-stone-800">當週急單表單已準備好！</h2>
-        <p class="text-xs text-stone-600">正在為您開啟 LINE 對話框，傳送後將由<strong>專人為您報價</strong>...</p>
+        <p class="text-xs text-stone-600">正在為您開啟 LINE 對話框，傳送後將由<strong>專人為您確認檔期與核對訂單</strong>...</p>
         <div class="pt-1 space-y-2">
           <a id="lineManualBtn" href="#" target="_blank" rel="noopener noreferrer" class="inline-block w-full bg-[#06C755] hover:bg-[#05b34c] text-white font-bold py-3.5 rounded-xl shadow transition duration-200 text-sm">
             點此開啟 LINE 傳送表單（由專人報價）
@@ -91,7 +92,7 @@ input, select, textarea {
             返回修改表單內容
           </button>
         </div>
-        <p class="text-[11px] text-amber-800 font-medium">進入聊天室後請務必按下「傳送」，客服收到後將立即為您報價與確認檔期！</p>
+        <p class="text-[11px] text-amber-800 font-medium">進入聊天室後請務必按下「傳送」，客服收到後將立即為您確認檔期！</p>
       </div>
 
       <!-- 多頁式表單本體 -->
@@ -108,56 +109,29 @@ input, select, textarea {
           <div id="photoGrid" class="grid grid-cols-2 gap-2.5"></div>
 
           <p id="step1Error" class="hidden text-xs text-red-600 font-bold text-center bg-red-50 p-2 rounded-lg border border-red-200">
-            請至少勾選一款您喜歡的蛋糕照片！
+            請至少勾選一款您想預訂的蛋糕！
           </p>
 
           <div class="pt-1">
             <button type="button" onclick="goToStep(2)" class="w-full bg-[#62502D] hover:bg-[#4e3f22] text-white font-bold py-3 rounded-xl shadow transition duration-200 text-sm">
-              下一步：選擇客製化選項 ➔
+              下一步：選擇口味與客製化選項 ➔
             </button>
           </div>
         </div>
 
-        <!-- ==================== 第 2 頁：選擇可客製的選項 ==================== -->
+        <!-- ==================== 第 2 頁：選擇各款式口味與客製化選項 ==================== -->
         <div id="step-2" class="step-section space-y-3.5">
           <!-- 已選款式預覽列 -->
           <div class="p-2.5 bg-[#F7F5F0] rounded-xl border border-stone-200">
             <div class="flex items-center justify-between mb-1.5">
-              <span class="text-xs font-bold text-[#62502D]">您勾選的款式：</span>
-              <button type="button" onclick="goToStep(1)" class="text-[11px] text-stone-500 underline hover:text-stone-800">重新勾選照片</button>
+              <span class="text-xs font-bold text-[#62502D]">您勾選的款式清單：</span>
+              <button type="button" onclick="goToStep(1)" class="text-[11px] text-stone-500 underline hover:text-stone-800">重新挑選照片</button>
             </div>
             <div id="selectedPreviewList" class="flex flex-wrap gap-2"></div>
-            <p id="multiCakeNote" class="hidden text-[11px] text-amber-800 bg-amber-50 p-2 rounded-lg border border-amber-200 mt-2"></p>
           </div>
 
-          <!-- 1. 戚風口味：完全隨機安排 ＋ 忌口填框 -->
-          <div class="p-3 bg-stone-50 rounded-xl border border-stone-200 space-y-2">
-            <div class="flex items-center gap-1.5 text-xs font-bold text-stone-800">
-              <span>蛋糕口味：<strong>完全隨機安排</strong></span>
-            </div>
-            <p class="text-[11px] text-stone-500 leading-relaxed">
-              當週急單口味皆由店家隨機搭配當週新鮮夾餡（漢堡盒為單層夾餡，4吋整模為雙層夾餡）。
-            </p>
-            <!-- 忌口與過敏備註 -->
-            <div class="pt-1">
-              <label class="block text-[11px] font-semibold text-amber-900 mb-1">
-                忌口或過敏備註（選填，如不吃的水果、巧克力或核桃過敏）：
-              </label>
-              <input type="text" id="allergyNote" placeholder="例如：不吃巧克力、對核桃過敏（無忌口免填）" class="w-full border border-stone-300 rounded-lg p-2 bg-white outline-none focus:border-[#62502D] text-xs" />
-            </div>
-          </div>
-
-          <!-- 2. 款式細節微調：更換緞帶顏色 -->
-          <div class="p-3 bg-stone-50 rounded-xl border border-stone-200 space-y-2.5">
-            <label class="block text-xs font-bold text-stone-800">
-              更換緞帶顏色（單選）
-            </label>
-            <p class="text-[10px] text-stone-500">
-              可更換照片中蝴蝶結或緞帶顏色，若無需換色請選擇「不換色（依原樣）」。
-            </p>
-            <!-- 緞帶顏色選項 -->
-            <div id="ribbonColorList" class="grid grid-cols-4 gap-2 text-xs"></div>
-          </div>
+          <!-- 動態款式客製化設定區（依所選款式獨立展開口味與客製） -->
+          <div id="customOptionsContainer" class="space-y-3"></div>
 
           <!-- 上一步 / 下一步按鈕 -->
           <div class="grid grid-cols-3 gap-2 pt-1">
@@ -176,8 +150,8 @@ input, select, textarea {
           <div class="p-3 bg-stone-50 rounded-xl border border-stone-200">
             <label class="block text-xs font-bold mb-1.5 text-stone-800">需加購商品（可複選）</label>
             <div id="addonsContainer" class="grid grid-cols-2 gap-2 text-xs text-stone-700 bg-white p-2.5 rounded-xl border border-stone-200">
-              <!-- 數字蠟燭固定保留展開功能 -->
-              <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" id="candleCheckbox" name="addons" value="數字蠟燭 $30/支" class="addon-item rounded" /> 數字蠟燭 $30/支</label>
+              <!-- 數字蠟燭固定保留展開歲數填寫 -->
+              <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" id="candleCheckbox" name="addons" value="數字蠟燭 $30/支" class="addon-item rounded accent-[#62502D]" /> 數字蠟燭 $30/支</label>
             </div>
             <!-- 數字蠟燭歲數欄 -->
             <div id="candleField" class="hidden mt-2 p-2.5 bg-amber-50 rounded-lg border border-amber-200">
@@ -236,11 +210,11 @@ input, select, textarea {
 
             <div class="pt-1.5 space-y-2 border-t border-amber-200/80">
               <label class="flex items-start gap-2 cursor-pointer text-xs text-stone-800 font-semibold bg-white p-2.5 rounded-lg border border-amber-300">
-                <input type="checkbox" id="pickupConfirm" required class="mt-0.5 rounded text-[#62502D] w-4 h-4 shrink-0" />
+                <input type="checkbox" id="pickupConfirm" required class="mt-0.5 rounded text-[#62502D] w-4 h-4 shrink-0 accent-[#62502D]" />
                 <span>我已了解【領取事項】：僅限門市自取（無配送服務，建議開車取貨） <span class="text-red-500">*</span></span>
               </label>
               <label class="flex items-start gap-2 cursor-pointer text-xs text-rose-900 font-semibold bg-rose-50 p-2.5 rounded-lg border border-rose-200">
-                <input type="checkbox" id="noticeConfirm" required class="mt-0.5 rounded text-rose-600 w-4 h-4 shrink-0" />
+                <input type="checkbox" id="noticeConfirm" required class="mt-0.5 rounded text-rose-600 w-4 h-4 shrink-0 accent-rose-600" />
                 <span>我已了解【注意事項】：蛋糕建議3天內食用完畢，急單預訂後無法取消或改期，送出後由 LINE 專人報價 <span class="text-red-500">*</span></span>
               </label>
             </div>
@@ -254,7 +228,7 @@ input, select, textarea {
               ⬅ 上一步
             </button>
             <button type="submit" id="submitBtn" class="col-span-2 bg-[#06C755] hover:bg-[#05b34c] text-white font-bold py-3.5 rounded-xl shadow transition duration-200 flex items-center justify-center gap-1.5 text-sm">
-              <span>傳送至 LINE 由專人報價</span>
+              <span>傳送至 LINE 由專人確認</span>
             </button>
           </div>
         </div>
@@ -352,7 +326,7 @@ input, select, textarea {
       <div class="p-2.5 bg-stone-50 rounded-xl border border-stone-200 space-y-2">
         <div class="flex items-center justify-between">
           <button type="button" id="prevMonthBtn" class="p-1 px-2.5 bg-white border border-stone-300 rounded-lg text-xs font-bold hover:bg-stone-100">◀ 上個月</button>
-          <span id="calendarMonthTitle" class="font-bold text-sm text-[#62502D]">2026 年 10 月</span>
+          <span id="calendarMonthTitle" class="font-bold text-sm text-[#62502D]">2026 年 11 月</span>
           <button type="button" id="nextMonthBtn" class="p-1 px-2.5 bg-white border border-stone-300 rounded-lg text-xs font-bold hover:bg-stone-100">下個月 ▶</button>
         </div>
 
@@ -408,35 +382,27 @@ input, select, textarea {
 </div>
 
 <script>
-// ==================== 1. 安全預設設定（若無 config.js 亦能完美運行） ====================
+// ==================== 1. 安全預設設定 ====================
 const DEFAULT_CONFIG = {
   lineOaId: "@949kmnau",
   gasApi: "https://script.google.com/macros/s/AKfycbzVxDkFO8UDZHUZYhiwGSFsTU4v6Ilbp0mgLXHEiXtDYYv_9p3epdF_y1IoWwSalqVx/exec",
   booking: {
     pickupAddress: "台南市中西區友愛街93號",
-    pickupTimeRange: "15:00 - 19:00",
+    pickupTimeRange: "15:00～19:00",
     pickupTimes: ["15:00", "15:30", "16:00", "16:30", "17:00", "17:30", "18:00", "18:30", "19:00"],
     minDaysNotice: 1,
     maxDaysAhead: 14,
-    weeklyClosedDay: 1, // 週一公休
+    weeklyClosedDay: 1,
     closedDates: []
   },
-  cakePhotos: [
-    { id: "cake1", title: "公版 1 號 - 簡約復古奶油", spec: "4吋 / 漢堡盒", file: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=600&auto=format&fit=crop&q=80" },
-    { id: "cake2", title: "公版 2 號 - 浪漫緞帶蝴蝶結", spec: "4吋 / 雙層夾餡", file: "https://images.unsplash.com/photo-1535141192574-5d4897c13136?w=600&auto=format&fit=crop&q=80" },
-    { id: "cake3", title: "公版 3 號 - 經典法式小花", spec: "4吋 / 雙層夾餡", file: "https://images.unsplash.com/photo-1588195538326-c5b1e9f80a1b?w=600&auto=format&fit=crop&q=80" },
-    { id: "cake4", title: "公版 4 號 - 珍珠蕾絲復古風", spec: "4吋 / 漢堡盒", file: "https://images.unsplash.com/photo-1563729784474-d77dbb933a9e?w=600&auto=format&fit=crop&q=80" }
-  ],
-  ribbonColors: ["不換色（依原樣）", "白色", "黑色", "紅色", "粉色", "藍色", "灰色", "咖啡色"],
+  cakePhotos: [],
   addons: ["2人餐具 $15", "5人餐具 $30", "10人餐具 $50", "生日插牌 / 造型蠟燭", "保冰袋/劑 $100"]
 };
 
-// 合併使用者外部 config.js
+// 合併設定檔
 const ACTIVE_CONFIG = (typeof CONFIG !== 'undefined') ? CONFIG : DEFAULT_CONFIG;
 if (!ACTIVE_CONFIG.lineOaId) ACTIVE_CONFIG.lineOaId = DEFAULT_CONFIG.lineOaId;
 if (!ACTIVE_CONFIG.booking) ACTIVE_CONFIG.booking = DEFAULT_CONFIG.booking;
-if (!ACTIVE_CONFIG.cakePhotos || ACTIVE_CONFIG.cakePhotos.length === 0) ACTIVE_CONFIG.cakePhotos = DEFAULT_CONFIG.cakePhotos;
-if (!ACTIVE_CONFIG.ribbonColors) ACTIVE_CONFIG.ribbonColors = DEFAULT_CONFIG.ribbonColors;
 if (!ACTIVE_CONFIG.addons) ACTIVE_CONFIG.addons = DEFAULT_CONFIG.addons;
 
 // ==================== 2. 日期與 Google 試算表 (GAS) 核心常數 ====================
@@ -445,7 +411,7 @@ const STORAGE_KEY_DATE_STATUS = "wuyi_cakethisweek_date_status_v1";
 const STORAGE_KEY_DISABLE_MONDAY = "wuyi_cakethisweek_disable_monday_v1";
 const STORAGE_KEY_GAS_API = "wuyi_gas_api_url";
 
-let GAS_CALENDAR_API = localStorage.getItem(STORAGE_KEY_GAS_API) || (ACTIVE_CONFIG.gasApi || "https://script.google.com/macros/s/AKfycbzVxDkFO8UDZHUZYhiwGSFsTU4v6Ilbp0mgLXHEiXtDYYv_9p3epdF_y1IoWwSalqVx/exec");
+let GAS_CALENDAR_API = localStorage.getItem(STORAGE_KEY_GAS_API) || (ACTIVE_CONFIG.gasApi || DEFAULT_CONFIG.gasApi);
 
 let calendarDateStatus = {};
 let disableMondaySetting = true;
@@ -475,13 +441,13 @@ const formatYMD = (d) => {
 function getDateStatus(dateStr) {
   const parts = dateStr.split("-");
   const d = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
-  const dayOfWeek = d.getDay(); // 0:週日, 1:週一, ...
+  const dayOfWeek = d.getDay(); // 0:週日, 1:週一...
 
-  // 1. 如果個別指定狀態，優先採用
+  // 1. 個別指定優先
   if (calendarDateStatus[dateStr]) {
     return normalizeStatus(calendarDateStatus[dateStr]);
   }
-  // 2. 如果設定週一固定公休且當天為週一
+  // 2. 週一固定公休
   if (disableMondaySetting && dayOfWeek === 1) {
     return 'closed';
   }
@@ -527,14 +493,14 @@ function initFlatpickrCalendar() {
   });
 }
 
-// 初始化靜態文字
+// 初始化表頭靜態資訊
 const lineLink = document.getElementById("lineOaLink");
 lineLink.innerText = ACTIVE_CONFIG.lineOaId;
 lineLink.href = `https://line.me/R/ti/p/${ACTIVE_CONFIG.lineOaId}`;
 document.getElementById("txtPickupAddress").innerText = ACTIVE_CONFIG.booking.pickupAddress;
 document.getElementById("txtPickupTimeRange").innerText = ACTIVE_CONFIG.booking.pickupTimeRange;
 
-// 初始化取貨時段選項
+// 初始化自取時段選單
 const timeSelect = document.getElementById("time");
 timeSelect.innerHTML = '<option value="">選擇時段</option>';
 ACTIVE_CONFIG.booking.pickupTimes.forEach(t => {
@@ -544,18 +510,24 @@ ACTIVE_CONFIG.booking.pickupTimes.forEach(t => {
   timeSelect.appendChild(opt);
 });
 
-// 1. 動態渲染第 1 頁照片卡片
+// ==================== 3. 動態渲染第 1 頁照片卡片 ====================
 const photoGrid = document.getElementById("photoGrid");
 photoGrid.innerHTML = "";
+
 ACTIVE_CONFIG.cakePhotos.forEach((item) => {
   const card = document.createElement("div");
   card.id = `card-${item.id}`;
-  card.className = "border-2 border-stone-200 rounded-xl overflow-hidden bg-white transition flex flex-col cursor-pointer hover:border-stone-400 touch-press";
+  card.className = "border-2 border-stone-200 rounded-xl overflow-hidden bg-white transition flex flex-col cursor-pointer hover:border-stone-400 touch-press relative shadow-xs";
   card.onclick = function() {
     const cb = document.getElementById(`cb-${item.id}`);
     cb.checked = !cb.checked;
     updateCardStyle(item.id);
   };
+
+  const badgeHtml = item.badge 
+    ? `<span class="bg-amber-100 text-amber-800 text-[9px] font-bold px-1.5 py-0.5 rounded">${item.badge}</span>` 
+    : '';
+
   card.innerHTML = `
     <div class="relative aspect-[3/4] w-full bg-stone-100 overflow-hidden">
       <img src="${item.file}" alt="${item.title}" loading="lazy" class="w-full h-full object-cover cake-photo-img" />
@@ -569,49 +541,17 @@ ACTIVE_CONFIG.cakePhotos.forEach((item) => {
         </button>
       </div>
     </div>
-    <div class="p-2 flex flex-col justify-between flex-1 bg-white">
-      <div class="text-xs font-bold text-stone-800 leading-snug">${item.title}</div>
-      <div class="mt-1">
+    <div class="p-2 flex flex-col justify-between flex-1 bg-white space-y-1">
+      <div class="text-xs font-bold text-stone-800 leading-snug line-clamp-2">${item.title}</div>
+      <div class="flex items-center justify-between gap-1 pt-1 border-t border-stone-100">
         <span class="text-[10px] text-stone-500">${item.spec}</span>
+        <span class="text-xs font-bold text-[#62502D]">${item.priceText}</span>
       </div>
+      ${badgeHtml ? `<div class="pt-0.5">${badgeHtml}</div>` : ''}
     </div>
   `;
   photoGrid.appendChild(card);
 });
-
-// 2. 動態渲染第 2 頁緞帶顏色選項
-const ribbonColorList = document.getElementById("ribbonColorList");
-ribbonColorList.innerHTML = "";
-ACTIVE_CONFIG.ribbonColors.forEach((color, idx) => {
-  const label = document.createElement("label");
-  label.className = "flex items-center justify-center p-2 rounded-lg border border-stone-300 bg-white cursor-pointer hover:border-[#62502D] text-center font-medium text-xs";
-  label.innerHTML = `
-    <input type="radio" name="ribbonColor" value="${color}" ${idx === 0 ? "checked" : ""} class="sr-only peer" />
-    <span class="w-full text-center py-0.5 rounded peer-checked:bg-[#62502D] peer-checked:text-white transition">${color}</span>
-  `;
-  ribbonColorList.appendChild(label);
-});
-
-// 3. 動態渲染第 3 頁加購商品
-const addonsContainer = document.getElementById("addonsContainer");
-ACTIVE_CONFIG.addons.forEach((addon) => {
-  const label = document.createElement("label");
-  label.className = "flex items-center gap-1.5 cursor-pointer";
-  label.innerHTML = `
-    <input type="checkbox" name="addons" value="${addon}" class="addon-item rounded" /> ${addon}
-  `;
-  addonsContainer.insertBefore(label, addonsContainer.firstChild);
-});
-
-// 追加「無須加購」按鈕
-const noAddonLabel = document.createElement("label");
-noAddonLabel.className = "flex items-center gap-1.5 col-span-2 pt-1 border-t border-stone-100 cursor-pointer";
-noAddonLabel.innerHTML = `
-  <input type="checkbox" id="noAddonCheckbox" name="addons" value="無加購" class="rounded" /> 無須加購
-`;
-addonsContainer.appendChild(noAddonLabel);
-
-let lastGeneratedMessage = "";
 
 function updateCardStyle(id) {
   const cb = document.getElementById(`cb-${id}`);
@@ -630,6 +570,186 @@ function getSelectedPhotos() {
   return ACTIVE_CONFIG.cakePhotos.filter(item => document.getElementById(`cb-${item.id}`)?.checked);
 }
 
+// ==================== 4. 動態渲染第 2 頁各款式口味與客製化項目 ====================
+function renderCustomOptionsForSelected() {
+  const selected = getSelectedPhotos();
+  const container = document.getElementById("customOptionsContainer");
+  container.innerHTML = "";
+
+  selected.forEach((cake) => {
+    const card = document.createElement("div");
+    card.className = "p-3.5 bg-stone-50 rounded-xl border border-stone-200 space-y-3";
+    const cfg = cake.customConfig || {};
+    const flavors = cake.flavorOptions || [];
+
+    let html = `
+      <div class="flex items-center justify-between pb-2 border-b border-stone-200">
+        <div class="flex items-center gap-2">
+          <img src="${cake.file}" alt="${cake.title}" class="w-9 h-9 rounded-lg object-cover border border-stone-300 shadow-2xs" />
+          <div>
+            <div class="text-xs font-bold text-[#62502D]">${cake.title}</div>
+            <div class="text-[10px] text-stone-500">${cake.spec} · <span class="font-bold text-stone-700">${cake.priceText}</span></div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    // 1. 蛋糕口味二選一
+    if (flavors && flavors.length > 0) {
+      html += `
+        <div class="space-y-1.5 bg-white p-2.5 rounded-lg border border-stone-200 shadow-2xs">
+          <label class="block text-xs font-bold text-[#62502D] flex items-center gap-1">
+            <span>🎂</span>
+            <span>選擇蛋糕口味（二選一）</span>
+            <span class="text-red-500">*</span>
+          </label>
+          <div class="space-y-1.5 pt-0.5">
+            ${flavors.map((flv, fIdx) => `
+              <label class="flex items-start gap-2 p-2 rounded-lg border border-stone-200 hover:border-[#62502D] bg-stone-50 cursor-pointer transition text-xs font-medium">
+                <input type="radio" name="custom_flavor_${cake.id}" value="${flv}" ${fIdx === 0 ? "checked" : ""} class="mt-0.5 accent-[#62502D]" />
+                <span class="text-stone-800 leading-snug">${flv}</span>
+              </label>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    // 2. 若款式固定無額外客製 (款式 2)
+    if (cfg.isFixed) {
+      html += `
+        <div class="p-2.5 bg-amber-50/80 rounded-lg border border-amber-200 text-xs text-amber-900 leading-relaxed font-medium">
+          ℹ️ ${cfg.fixedNote || "款式如圖製作，無客製選項。"}
+        </div>
+      `;
+    }
+
+    // 3. 絲帶顏色選擇 (款式 1)
+    if (cfg.hasRibbon && cfg.ribbonColors) {
+      html += `
+        <div class="space-y-1.5">
+          <label class="block text-xs font-bold text-stone-800">${cfg.ribbonLabel || "更換絲帶顏色（單選）"}</label>
+          <div class="grid grid-cols-5 gap-1.5 text-xs">
+            ${cfg.ribbonColors.map((color, idx) => `
+              <label class="flex items-center justify-center p-1.5 rounded-lg border border-stone-300 bg-white cursor-pointer hover:border-[#62502D] text-center font-medium">
+                <input type="radio" name="custom_ribbon_${cake.id}" value="${color}" ${idx === 0 ? "checked" : ""} class="sr-only peer" />
+                <span class="w-full text-center py-0.5 rounded peer-checked:bg-[#62502D] peer-checked:text-white transition text-[11px]">${color.replace(/（.*）/, '')}</span>
+              </label>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    // 4. 款式顏色選擇 (款式 6：藍、粉、黃、紫)
+    if (cfg.hasColorSelect && cfg.colorSelectOptions) {
+      html += `
+        <div class="space-y-1.5">
+          <label class="block text-xs font-bold text-stone-800">${cfg.colorSelectLabel || "款式顏色選擇（單選）"}</label>
+          <div class="grid grid-cols-4 gap-1.5 text-xs">
+            ${cfg.colorSelectOptions.map((color, idx) => `
+              <label class="flex items-center justify-center p-1.5 rounded-lg border border-stone-300 bg-white cursor-pointer hover:border-[#62502D] text-center font-medium">
+                <input type="radio" name="custom_colorSelect_${cake.id}" value="${color}" ${idx === 0 ? "checked" : ""} class="sr-only peer" />
+                <span class="w-full text-center py-0.5 rounded peer-checked:bg-[#62502D] peer-checked:text-white transition text-[11px]">${color}</span>
+              </label>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    // 5. 蛋糕題字二選一 (款式 1, 款式 6: Happy Birthday / Happy Anniversary)
+    if (cfg.hasTextChoice && cfg.textChoices) {
+      html += `
+        <div class="space-y-1.5 pt-1">
+          <label class="block text-xs font-bold text-stone-800">${cfg.textLabel || "蛋糕題字內容（單選）"}</label>
+          <div class="grid grid-cols-2 gap-2 text-xs">
+            ${cfg.textChoices.map((text, idx) => `
+              <label class="flex items-center p-2 rounded-lg border border-stone-300 bg-white cursor-pointer hover:border-[#62502D] font-medium gap-2">
+                <input type="radio" name="custom_text_${cake.id}" value="${text}" ${idx === 0 ? "checked" : ""} class="accent-[#62502D]" />
+                <span class="text-xs text-stone-800">${text}</span>
+              </label>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    // 6. 蛋糕小卡片二選一 (款式 3, 款式 4, 款式 5: Happy Birthday / Happy Anniversary)
+    if (cfg.hasCardChoice && cfg.cardChoices) {
+      html += `
+        <div class="space-y-1.5 pt-1">
+          <label class="block text-xs font-bold text-stone-800">${cfg.cardLabel || "蛋糕上小卡片（二選一）"}</label>
+          <div class="grid grid-cols-2 gap-2 text-xs">
+            ${cfg.cardChoices.map((cardText, idx) => `
+              <label class="flex items-center p-2 rounded-lg border border-stone-300 bg-white cursor-pointer hover:border-[#62502D] font-medium gap-2">
+                <input type="radio" name="custom_card_${cake.id}" value="${cardText}" ${idx === 0 ? "checked" : ""} class="accent-[#62502D]" />
+                <span class="text-xs text-stone-800">${cardText}</span>
+              </label>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    // 7. 更換題字顏色 (款式 4)
+    if (cfg.hasTextColor && cfg.textColors) {
+      html += `
+        <div class="space-y-1.5">
+          <label class="block text-xs font-bold text-stone-800">${cfg.textColorLabel || "更換題字顏色（單選）"}</label>
+          <div class="grid grid-cols-4 sm:grid-cols-7 gap-1.5 text-xs">
+            ${cfg.textColors.map((color, idx) => `
+              <label class="flex items-center justify-center p-1.5 rounded-lg border border-stone-300 bg-white cursor-pointer hover:border-[#62502D] text-center font-medium">
+                <input type="radio" name="custom_textColor_${cake.id}" value="${color}" ${idx === 0 ? "checked" : ""} class="sr-only peer" />
+                <span class="w-full text-center py-0.5 rounded peer-checked:bg-[#62502D] peer-checked:text-white transition text-[11px]">${color}</span>
+              </label>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    // 8. 蝴蝶結顏色 (款式 5)
+    if (cfg.hasBowColor && cfg.bowColors) {
+      html += `
+        <div class="space-y-1.5">
+          <label class="block text-xs font-bold text-stone-800">${cfg.bowLabel || "蝴蝶結顏色（單選）"}</label>
+          <div class="grid grid-cols-5 gap-1.5 text-xs">
+            ${cfg.bowColors.map((color, idx) => `
+              <label class="flex items-center justify-center p-1.5 rounded-lg border border-stone-300 bg-white cursor-pointer hover:border-[#62502D] text-center font-medium">
+                <input type="radio" name="custom_bow_${cake.id}" value="${color}" ${idx === 0 ? "checked" : ""} class="sr-only peer" />
+                <span class="w-full text-center py-0.5 rounded peer-checked:bg-[#62502D] peer-checked:text-white transition text-[11px]">${color.replace(/（.*）/, '')}</span>
+              </label>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    card.innerHTML = html;
+    container.appendChild(card);
+  });
+}
+
+// 渲染第 3 頁加購商品
+const addonsContainer = document.getElementById("addonsContainer");
+ACTIVE_CONFIG.addons.forEach((addon) => {
+  const label = document.createElement("label");
+  label.className = "flex items-center gap-1.5 cursor-pointer";
+  label.innerHTML = `
+    <input type="checkbox" name="addons" value="${addon}" class="addon-item rounded accent-[#62502D]" /> ${addon}
+  `;
+  addonsContainer.insertBefore(label, addonsContainer.firstChild);
+});
+
+// 追加「無須加購」互斥選項
+const noAddonLabel = document.createElement("label");
+noAddonLabel.className = "flex items-center gap-1.5 col-span-2 pt-1.5 border-t border-stone-100 cursor-pointer font-medium text-stone-600";
+noAddonLabel.innerHTML = `
+  <input type="checkbox" id="noAddonCheckbox" name="addons" value="無加購" class="rounded accent-[#62502D]" /> 無須加購
+`;
+addonsContainer.appendChild(noAddonLabel);
+
 // 步驟切換 (1 / 2 / 3)
 function goToStep(stepNumber) {
   if (stepNumber >= 2) {
@@ -642,26 +762,21 @@ function goToStep(stepNumber) {
       err.scrollIntoView({ behavior: "smooth", block: "center" });
       return;
     }
+
+    // 渲染已勾選預覽
     const previewContainer = document.getElementById("selectedPreviewList");
     previewContainer.innerHTML = selected.map(item => `
-      <div class="flex items-center gap-2 bg-white border border-stone-300 rounded-lg p-1.5 pr-2.5 shadow-sm">
-        <img src="${item.file}" alt="${item.title}" class="w-10 h-12 object-cover rounded" />
+      <div class="flex items-center gap-2 bg-white border border-stone-300 rounded-lg p-1.5 pr-2.5 shadow-xs">
+        <img src="${item.file}" alt="${item.title}" class="w-10 h-10 object-cover rounded" />
         <div>
           <div class="text-xs font-bold text-stone-800">${item.title}</div>
-          <div class="text-[10px] text-stone-500">${item.spec}</div>
+          <div class="text-[10px] text-stone-500">${item.spec} · <span class="font-bold text-[#62502D]">${item.priceText}</span></div>
         </div>
       </div>
     `).join("");
 
-    const multiNote = document.getElementById("multiCakeNote");
-    if (multiNote) {
-      if (selected.length > 1) {
-        multiNote.classList.remove("hidden");
-        multiNote.innerText = `您共勾選了 ${selected.length} 款蛋糕，下方「緞帶顏色」將統一套用。如有個別款式不同顏色需求，請在下方備註欄填寫。`;
-      } else {
-        multiNote.classList.add("hidden");
-      }
-    }
+    // 渲染各款式獨立口味與客製化選項
+    renderCustomOptionsForSelected();
   }
 
   document.querySelectorAll(".step-section").forEach(el => el.classList.remove("active"));
@@ -704,7 +819,7 @@ function resetToForm() {
   const submitBtn = document.getElementById("submitBtn");
   if (submitBtn) {
     submitBtn.disabled = false;
-    submitBtn.innerHTML = `<span>傳送至 LINE 由專人報價</span>`;
+    submitBtn.innerHTML = `<span>傳送至 LINE 由專人確認</span>`;
   }
 }
 
@@ -739,7 +854,9 @@ document.querySelectorAll(".addon-item").forEach(cb => {
   });
 });
 
-// 複製明細（保證純文字、無任何 EMOJI）
+let lastGeneratedMessage = "";
+
+// 複製明細（純文字無 Emoji）
 document.getElementById("copyOrderBtn").addEventListener("click", function() {
   if (!lastGeneratedMessage) return;
   navigator.clipboard.writeText(lastGeneratedMessage).then(() => {
@@ -755,11 +872,11 @@ document.getElementById("copyOrderBtn").addEventListener("click", function() {
 function cleanTextWithoutEmoji(str) {
   if (!str) return "";
   return str.replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F1E0}-\u{1F1FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F900}-\u{1F9FF}\u{1F018}-\u{1F270}\u{2388}-\u{23F3}\u{2B05}-\u{2B55}\u{200D}\u{FE0F}]/gu, '')
-            .replace(/[🎂🔥🎉🛍️🕯️📅⚠️🔹🔺🚗✅🔍✨👉📋⬅️]/g, '')
+            .replace(/[🎂🔥🎉🛍️🕯️📅⚠️🔹🔺🚗✅🔍✨👉📋⬅️ℹ️👑🍫]/g, '')
             .trim();
 }
 
-// 表單送出
+// ==================== 表單送出至 LINE ====================
 document.getElementById("cakeOrderForm").addEventListener("submit", function(e) {
   e.preventDefault();
   const errEl = document.getElementById("step3Error");
@@ -810,9 +927,53 @@ document.getElementById("cakeOrderForm").addEventListener("submit", function(e) 
     return;
   }
 
-  const selectedPhotos = selectedList.map(p => `•  ${cleanTextWithoutEmoji(p.title)}`).join("\n");
-  const allergyVal = cleanTextWithoutEmoji(document.getElementById("allergyNote").value.trim());
-  const ribbonColor = cleanTextWithoutEmoji(document.querySelector('input[name="ribbonColor"]:checked')?.value) || "不換色（依原樣）";
+  // 組織各款式的客製項目明細
+  let totalEstimatedPrice = 0;
+
+  const itemDetailsText = selectedList.map((cake, idx) => {
+    const cfg = cake.customConfig || {};
+    let lines = [`• [款式 ${idx + 1}] ${cleanTextWithoutEmoji(cake.title)}（${cake.spec} · ${cake.priceText}）`];
+
+    if (cake.price) {
+      totalEstimatedPrice += cake.price;
+    }
+
+    // 口味
+    const chosenFlavor = document.querySelector(`input[name="custom_flavor_${cake.id}"]:checked`)?.value;
+    if (chosenFlavor) {
+      lines.push(`  - 口味：${cleanTextWithoutEmoji(chosenFlavor)}`);
+    }
+
+    if (cfg.isFixed) {
+      lines.push(`  - 款式說明：${cfg.fixedNote || "款式如圖製作，無客製選項"}`);
+    } else {
+      if (cfg.hasRibbon) {
+        const val = document.querySelector(`input[name="custom_ribbon_${cake.id}"]:checked`)?.value || "依原樣";
+        lines.push(`  - 絲帶顏色：${cleanTextWithoutEmoji(val)}`);
+      }
+      if (cfg.hasColorSelect) {
+        const val = document.querySelector(`input[name="custom_colorSelect_${cake.id}"]:checked`)?.value || "藍色";
+        lines.push(`  - 款式顏色：${cleanTextWithoutEmoji(val)}`);
+      }
+      if (cfg.hasTextChoice) {
+        const val = document.querySelector(`input[name="custom_text_${cake.id}"]:checked`)?.value || "Happy Birthday";
+        lines.push(`  - 題字內容：${cleanTextWithoutEmoji(val)}`);
+      }
+      if (cfg.hasCardChoice) {
+        const val = document.querySelector(`input[name="custom_card_${cake.id}"]:checked`)?.value || "Happy Birthday";
+        lines.push(`  - 蛋糕上小卡片：${cleanTextWithoutEmoji(val)}`);
+      }
+      if (cfg.hasTextColor) {
+        const val = document.querySelector(`input[name="custom_textColor_${cake.id}"]:checked`)?.value || "依原樣";
+        lines.push(`  - 題字顏色：${cleanTextWithoutEmoji(val)}`);
+      }
+      if (cfg.hasBowColor) {
+        const val = document.querySelector(`input[name="custom_bow_${cake.id}"]:checked`)?.value || "依原樣";
+        lines.push(`  - 蝴蝶結顏色：${cleanTextWithoutEmoji(val)}`);
+      }
+    }
+    return lines.join("\n");
+  }).join("\n\n");
 
   let selectedAddons = Array.from(document.querySelectorAll('input[name="addons"]:checked')).map(el => cleanTextWithoutEmoji(el.value));
   if (candleCheckbox.checked && candleDetail.value.trim() !== "") {
@@ -823,22 +984,22 @@ document.getElementById("cakeOrderForm").addEventListener("submit", function(e) 
   const cleanLineName = cleanTextWithoutEmoji(lineNameVal);
   const cleanCustName = cleanTextWithoutEmoji(nameVal);
 
+  const priceSummaryText = `預估總金額：$${totalEstimatedPrice}（送出後由專人核對確認）`;
+
   const message =
 `【WUYI急單預訂詢價】
-款式（共${selectedList.length}款）：
-${selectedPhotos}
+訂購款式（共 ${selectedList.length} 款）：
+${itemDetailsText}
 
-口味：隨機安排
-（忌口備註：${allergyVal}）
-緞帶：${ribbonColor}
+${priceSummaryText}
 
-加購：${addonsText}
+加購商品：${addonsText}
 
-取貨：${dateVal} ${timeVal}
-門市：${pickupAddress}
+取貨時間：${dateVal} ${timeVal}
+自取門市：${pickupAddress}
 
-姓名：${cleanCustName}（LINE: ${cleanLineName}） 
-電話：${cleanPhone}
+訂購人：${cleanCustName}（LINE: ${cleanLineName}）
+聯絡電話：${cleanPhone}
 
 已確認門市自取與急單須知，請專人報價！`;
 
@@ -864,8 +1025,7 @@ ${selectedPhotos}
   window.location.href = lineUrl;
 });
 
-// ==================== 3. 店長日曆管理與 Google 試算表連線 ====================
-// DOM 元素選取
+// ==================== 5. 店長日曆管理與 Google 試算表連線 ====================
 const adminCakeBtn = document.getElementById("adminCakeBtn");
 const adminModal = document.getElementById("adminModal");
 const adminStepAuth = document.getElementById("adminStepAuth");
@@ -915,7 +1075,7 @@ if (adminCakeBtn) {
   adminCakeBtn.addEventListener("click", openAdminModal);
 }
 
-// 頂部圖片連點 3 下亦可觸發
+// 頂圖連點 3 下觸發
 let tripleClickCount = 0;
 let tripleClickTimer = null;
 function handleTripleClickTrigger() {
@@ -949,7 +1109,6 @@ function verifyPassword() {
     viewMonth = todayObj.getMonth();
     setBrush('open');
     renderAdminCalendar();
-    // 填入目前使用的 GAS API 網址
     const cfgInput = document.getElementById("cfgGasApiInput");
     if (cfgInput) cfgInput.value = GAS_CALENDAR_API;
   } else {
@@ -960,7 +1119,7 @@ function verifyPassword() {
 if (adminVerifyBtn) adminVerifyBtn.addEventListener("click", verifyPassword);
 if (adminPwdInput) adminPwdInput.addEventListener("keydown", (ev) => { if (ev.key === "Enter") verifyPassword(); });
 
-// 筆刷模式切換
+// 筆刷切換
 function setBrush(mode) {
   currentBrush = mode;
   if (!brushOpenBtn || !brushClosedBtn) return;
@@ -993,16 +1152,16 @@ if (quickUnlockAllBtn) {
       calendarDateStatus[formatYMD(d)] = 'open';
     }
     renderAdminCalendar();
-    alert("🎉 已一鍵解鎖！今天起到未來一個月的所有日期皆可預訂。請記得點擊「儲存」同步至雲端！");
+    alert("🎉 已一鍵解鎖！今天起到未來一個月的所有日期皆可預訂。請記得點擊下方「儲存」同步至雲端！");
   });
 }
 
-// 日曆渲染（週日放第一列）
+// 日曆渲染（週日放第一格）
 function renderAdminCalendar() {
   if (!calendarMonthTitle || !calendarGrid) return;
   calendarMonthTitle.innerText = `${viewYear} 年 ${viewMonth + 1} 月`;
   calendarGrid.innerHTML = "";
-  const firstDayIndex = new Date(viewYear, viewMonth, 1).getDay(); // 週日放第 0 格
+  const firstDayIndex = new Date(viewYear, viewMonth, 1).getDay();
   const totalDays = new Date(viewYear, viewMonth + 1, 0).getDate();
   const today = new Date(); today.setHours(0,0,0,0);
 
@@ -1144,7 +1303,7 @@ async function manualCheckCloudConnection(e) {
   }
 }
 
-// 從雲端 Google 試算表讀取 cakethisweek_calander 設定
+// 從雲端 Google 試算表讀取設定
 async function loadCalendarFromGAS() {
   const headerDot = document.getElementById("headerCloudDot");
   const headerText = document.getElementById("headerCloudText");
@@ -1190,7 +1349,7 @@ async function loadCalendarFromGAS() {
   }
 }
 
-// 儲存至雲端 cakethisweek_calander_日曆設定
+// 儲存至雲端 cakethisweek_calander
 if (adminSaveSettingsBtn) {
   adminSaveSettingsBtn.addEventListener("click", async function() {
     const btn = adminSaveSettingsBtn;
