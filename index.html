@@ -157,7 +157,7 @@ to { opacity: 1; transform: translateY(0); }
 </div>
 <div class="grid grid-cols-2 gap-2">
 <div>
-<label class="block text-xs font-semibold mb-0.5 text-stone-700">取貨日期（當週） <span class="text-red-500">*</span></label>
+<label class="block text-xs font-semibold mb-0.5 text-stone-700">取貨日期 <span class="text-red-500">*</span></label>
 <input type="text" id="date" placeholder="點擊選擇日期" required readonly class="w-full border border-stone-300 rounded-lg p-2 bg-white cursor-pointer outline-none focus:border-[#62502D] text-xs" />
 </div>
 <div>
@@ -357,7 +357,7 @@ pickupAddress: "台南市中西區友愛街93號",
 pickupTimeRange: "15:00～19:00",
 pickupTimes: ["15:00", "15:30", "16:00", "16:30", "17:00", "17:30", "18:00", "18:30", "19:00"],
 minDaysNotice: 1,
-maxDaysAhead: 14,
+maxDaysAhead: 90, // 取消 7 天限制，全面開放未來 90 天
 weeklyClosedDay: 1,
 closedDates: []
 },
@@ -489,6 +489,11 @@ ACTIVE_CONFIG = Object.assign({}, DEFAULT_CONFIG, CONFIG);
 ACTIVE_CONFIG.cakePhotos = DEFAULT_CONFIG.cakePhotos;
 ACTIVE_CONFIG.lineOaId = "@230fpemy";
 }
+// 若外部 config.js 帶有舊版 7 天限制，覆寫為開放 90 天
+if (!ACTIVE_CONFIG.booking) ACTIVE_CONFIG.booking = {};
+if (!ACTIVE_CONFIG.booking.maxDaysAhead || ACTIVE_CONFIG.booking.maxDaysAhead <= 14) {
+ACTIVE_CONFIG.booking.maxDaysAhead = 90;
+}
 // ==================== 2. 日期與 Google 試算表 (GAS) 核心常數 ====================
 const CALENDAR_CATEGORY = "cakethisweek_calander";
 const STORAGE_KEY_DATE_STATUS = "wuyi_cakethisweek_date_status_v1";
@@ -543,7 +548,8 @@ flatpickrInstance.destroy();
 }
 const now = new Date();
 const minDays = (ACTIVE_CONFIG.booking && ACTIVE_CONFIG.booking.minDaysNotice !== undefined) ? Number(ACTIVE_CONFIG.booking.minDaysNotice) : 1;
-const maxDays = (ACTIVE_CONFIG.booking && ACTIVE_CONFIG.booking.maxDaysAhead !== undefined) ? Number(ACTIVE_CONFIG.booking.maxDaysAhead) : 14;
+// 取消 7 天限制：預設可選未來 90 天
+const maxDays = (ACTIVE_CONFIG.booking && ACTIVE_CONFIG.booking.maxDaysAhead !== undefined && ACTIVE_CONFIG.booking.maxDaysAhead > 14) ? Number(ACTIVE_CONFIG.booking.maxDaysAhead) : 90;
 const minBookingDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() + minDays);
 const maxBookingDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() + maxDays);
 const noteEl = document.getElementById("dateStatusNote");
@@ -956,100 +962,87 @@ return;
 let totalPrice = 0;
 const cakeBlocks = [];
 const priceBreakdownLines = [];
-
 selectedList.forEach((cake) => {
-  const cfg = cake.customConfig || {};
-  const lines = [];
-
-  // 1. 款式標題（去掉「款式 X｜」前綴）
-  let title = cleanTextWithoutEmoji(cake.title || "");
-  title = title.replace(/^款式\s*\d+\s*[｜\|]\s*/, "").trim();
-  lines.push(title);
-
-  // 2. 客製選項
-  if (cfg.isFixed) {
-    if (cfg.fixedNote) {
-      lines.push(`- 款式說明：${cleanTextWithoutEmoji(cfg.fixedNote)}`);
-    }
-  } else {
-    if (cfg.hasRibbon) {
-      const val = document.querySelector(`input[name="custom_ribbon_${cake.id}"]:checked`)?.value || "依原樣";
-      lines.push(`- 絲帶顏色：${cleanTextWithoutEmoji(val)}`);
-    }
-    if (cfg.hasBowColor) {
-      const val = document.querySelector(`input[name="custom_bow_${cake.id}"]:checked`)?.value || "依原樣";
-      lines.push(`- 蝴蝶結顏色：${cleanTextWithoutEmoji(val)}`);
-    }
-    if (cfg.hasColorSelect) {
-      const val = document.querySelector(`input[name="custom_colorSelect_${cake.id}"]:checked`)?.value || "藍色";
-      lines.push(`- 款式顏色：${cleanTextWithoutEmoji(val)}`);
-    }
-    if (cfg.hasTextColor) {
-      const val = document.querySelector(`input[name="custom_textColor_${cake.id}"]:checked`)?.value || "依原樣";
-      lines.push(`- 題字顏色：${cleanTextWithoutEmoji(val)}`);
-    }
-    if (cfg.hasTextChoice) {
-      const val = document.querySelector(`input[name="custom_text_${cake.id}"]:checked`)?.value || "Happy Birthday";
-      lines.push(`- 題字內容：${cleanTextWithoutEmoji(val)}`);
-    }
-    if (cfg.hasCardChoice) {
-      const val = document.querySelector(`input[name="custom_card_${cake.id}"]:checked`)?.value || "Happy Birthday";
-      lines.push(`- 蛋糕上小卡片：${cleanTextWithoutEmoji(val)}`);
-    }
-  }
-
-  // 3. 尺寸（移除括號說明，例如：4吋整模（雙層夾餡） -> 4吋整模）
-  let spec = cleanTextWithoutEmoji(cake.spec || "");
-  const specClean = spec.replace(/（[^）]*）|\([^\)]*\)/g, "").trim();
-  lines.push("");
-  lines.push(specClean);
-
-  // 4. 口味（移除「口味1：/口味2：」等前綴）
-  const chosenFlavor = document.querySelector(`input[name="custom_flavor_${cake.id}"]:checked`)?.value || "";
-  const flavorClean = cleanTextWithoutEmoji(chosenFlavor).replace(/^口味\s*\d+\s*[：:]\s*/, "").trim();
-  lines.push(`口味：${flavorClean}`);
-
-  cakeBlocks.push(lines.join("\n"));
-
-  // 蛋糕金額計入明細清單
-  const cakePrice = Number(cake.price) || 0;
-  totalPrice += cakePrice;
-  const typePrefix = specClean.includes("漢堡盒") ? "漢堡盒" : "蛋糕";
-  priceBreakdownLines.push(`${typePrefix}$${cakePrice}`);
+const cfg = cake.customConfig || {};
+const lines = [];
+// 1. 款式標題（去掉「款式 X｜」前綴）
+let title = cleanTextWithoutEmoji(cake.title || "");
+title = title.replace(/^款式\s*\d+\s*[｜\|]\s*/, "").trim();
+lines.push(title);
+// 2. 客製選項
+if (cfg.isFixed) {
+if (cfg.fixedNote) {
+lines.push(`- 款式說明：${cleanTextWithoutEmoji(cfg.fixedNote)}`);
+}
+} else {
+if (cfg.hasRibbon) {
+const val = document.querySelector(`input[name="custom_ribbon_${cake.id}"]:checked`)?.value || "依原樣";
+lines.push(`- 絲帶顏色：${cleanTextWithoutEmoji(val)}`);
+}
+if (cfg.hasBowColor) {
+const val = document.querySelector(`input[name="custom_bow_${cake.id}"]:checked`)?.value || "依原樣";
+lines.push(`- 蝴蝶結顏色：${cleanTextWithoutEmoji(val)}`);
+}
+if (cfg.hasColorSelect) {
+const val = document.querySelector(`input[name="custom_colorSelect_${cake.id}"]:checked`)?.value || "藍色";
+lines.push(`- 款式顏色：${cleanTextWithoutEmoji(val)}`);
+}
+if (cfg.hasTextColor) {
+const val = document.querySelector(`input[name="custom_textColor_${cake.id}"]:checked`)?.value || "依原樣";
+lines.push(`- 題字顏色：${cleanTextWithoutEmoji(val)}`);
+}
+if (cfg.hasTextChoice) {
+const val = document.querySelector(`input[name="custom_text_${cake.id}"]:checked`)?.value || "Happy Birthday";
+lines.push(`- 題字內容：${cleanTextWithoutEmoji(val)}`);
+}
+if (cfg.hasCardChoice) {
+const val = document.querySelector(`input[name="custom_card_${cake.id}"]:checked`)?.value || "Happy Birthday";
+lines.push(`- 蛋糕上小卡片：${cleanTextWithoutEmoji(val)}`);
+}
+}
+// 3. 尺寸（移除括號說明，例如：4吋整模（雙層夾餡） -> 4吋整模）
+let spec = cleanTextWithoutEmoji(cake.spec || "");
+const specClean = spec.replace(/（[^）]*）|\([^\)]*\)/g, "").trim();
+lines.push("");
+lines.push(specClean);
+// 4. 口味（移除「口味1：/口味2：」等前綴）
+const chosenFlavor = document.querySelector(`input[name="custom_flavor_${cake.id}"]:checked`)?.value || "";
+const flavorClean = cleanTextWithoutEmoji(chosenFlavor).replace(/^口味\s*\d+\s*[：:]\s*/, "").trim();
+lines.push(`口味：${flavorClean}`);
+cakeBlocks.push(lines.join("\n"));
+// 蛋糕金額計入明細清單
+const cakePrice = Number(cake.price) || 0;
+totalPrice += cakePrice;
+const typePrefix = specClean.includes("漢堡盒") ? "漢堡盒" : "蛋糕";
+priceBreakdownLines.push(`${typePrefix}$${cakePrice}`);
 });
-
 // 加購項目整理
 let selectedAddons = Array.from(document.querySelectorAll('input[name="addons"]:checked')).map(el => cleanTextWithoutEmoji(el.value));
 if (candleCheckbox.checked && candleDetail.value.trim() !== "") {
-  selectedAddons = selectedAddons.map(item => item.includes("數字蠟燭") ? `數字蠟燭 (${cleanTextWithoutEmoji(candleDetail.value.trim())}) $30` : item);
+selectedAddons = selectedAddons.map(item => item.includes("數字蠟燭") ? `數字蠟燭 (${cleanTextWithoutEmoji(candleDetail.value.trim())}) $30` : item);
 }
-
 const addonDisplayList = [];
 selectedAddons.forEach(addon => {
-  if (!addon || addon === "無加購") return;
-  addonDisplayList.push(addon);
-
-  const m = addon.match(/\$(\d+)/);
-  if (m) {
-    totalPrice += Number(m[1]);
-  }
-  priceBreakdownLines.push(addon);
+if (!addon || addon === "無加購") return;
+addonDisplayList.push(addon);
+const m = addon.match(/\$(\d+)/);
+if (m) {
+totalPrice += Number(m[1]);
+}
+priceBreakdownLines.push(addon);
 });
-
 const addonsText = addonDisplayList.length > 0 ? addonDisplayList.join("、") : "無加購";
 const pickupAddress = cleanTextWithoutEmoji(ACTIVE_CONFIG.booking.pickupAddress);
 const cleanLineName = cleanTextWithoutEmoji(lineNameVal);
 const cleanCustName = cleanTextWithoutEmoji(nameVal);
-
 // 結尾金額試算
 priceBreakdownLines.push(`=${totalPrice}`);
-
 const message = [
-  ...cakeBlocks,
-  `加購商品：${addonsText}`,
-  `取貨日期：${dateVal}\n取貨時間：${timeVal}\n自取門市：${pickupAddress}`,
-  `訂購人：${cleanCustName}（LINE: ${cleanLineName}）\n聯絡電話：${cleanPhone}`,
-  priceBreakdownLines.join("\n")
+...cakeBlocks,
+`加購商品：${addonsText}`,
+`取貨日期：${dateVal}\n取貨時間：${timeVal}\n自取門市：${pickupAddress}`,
+`訂購人：${cleanCustName}（LINE: ${cleanLineName}）\n聯絡電話：${cleanPhone}`,
+priceBreakdownLines.join("\n")
 ].join("\n\n");
 lastGeneratedMessage = message;
 const encodedId = encodeURIComponent(ACTIVE_CONFIG.lineOaId);
